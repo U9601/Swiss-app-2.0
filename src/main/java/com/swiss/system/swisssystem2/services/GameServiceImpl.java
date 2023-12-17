@@ -53,4 +53,9 @@ public class GameServiceImpl implements GameService {
         }
         return "Players Updated";
     }
+
+    @Override
+    public String deletePlayers(List<Player> players) {
+        return null;
+    }
 }

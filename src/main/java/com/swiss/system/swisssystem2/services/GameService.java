@@ -11,4 +11,6 @@ public interface GameService {
     String addPlayers(List<Player> players);
 
     String updatePlayers(List<Player> players);
+
+    String deletePlayers(List<Player> players);
 }

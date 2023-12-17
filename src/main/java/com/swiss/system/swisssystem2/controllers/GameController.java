@@ -32,6 +32,6 @@ public class GameController {
 
     @DeleteMapping("/delete-players")
     public ResponseEntity<String> deletePlayers(@RequestBody List<Player> players){
-        return ResponseEntity.ok(gameService.)
+        return ResponseEntity.ok(gameService.deletePlayers(players));
     }
 }

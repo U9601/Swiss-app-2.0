@@ -1,61 +1,80 @@
 package com.swiss.system.swisssystem2.services;
 
+import com.swiss.system.swisssystem2.dtos.Matchup;
 import com.swiss.system.swisssystem2.dtos.Player;
-import com.swiss.system.swisssystem2.dtos.PlayerEntity;
-import com.swiss.system.swisssystem2.dtos.mapper.PlayerMapper;
-import com.swiss.system.swisssystem2.repositories.GameRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class GameServiceImpl implements GameService {
 
-    private final GameRepository gameRepository;
-    private final PlayerMapper playerMapper;
+    private final PlayerService playerService;
+    private final Random rand = new Random();
 
     @Override
-    public List<Player> listAllPlayers() {
-        return playerMapper.playerEntityToPlayer(gameRepository.findAll());
-    }
+    public List<Matchup> startGame() {
+        List<Player> players = playerService.listAllPlayers();
+        if (players.size() < 4) return Collections.emptyList();
 
-    @Override
-    public String addPlayers(List<Player> players) {
-        try {
-            gameRepository.saveAll(playerMapper.playerToPlayerEntity(players));
-        }catch (Exception e){
-            log.error("Failed to save players", e);
-            throw new JpaSystemException(new RuntimeException("Failed to save players"));
-        }
-        return "Players Added";
-    }
+        removePlayersWith3Wins(players);
 
-    @Override
-    public String updatePlayers(List<Player> players) {
-        try {
-            players.forEach(player -> {
-                for(int i = 0; i < player.getListOfPlayedPlayers().size(); i++){
-                    Optional<PlayerEntity> currentPlayer = gameRepository.findById(Long.parseLong(player.getListOfPlayedPlayers().get(i)));
-                    if(currentPlayer.isEmpty()) continue;
-                    player.getListOfPlayedPlayers().set(i, currentPlayer.get().getPlayerId() + ", " + currentPlayer.get().getName());
+        Map<String, List<Player>> splitUpScores = splitUpScores(players);
+        List<Matchup> matchups = new ArrayList<>();
+        for(List<Player> playerList : splitUpScores.values()) {
+            for(int i = 0; i < players.size(); i++){
+                if(playerList.isEmpty()) break;
+
+                if(playerList.size() == 1){
+                    matchups.add(Matchup.builder().player1(playerList.get(0)).hasByeRound(true).build());
+                    break;
                 }
-            });
-            gameRepository.saveAll(playerMapper.playerToPlayerEntity(players));
-        }catch (Exception e){
-            log.error("Failed to update players", e);
-            throw new JpaSystemException(new RuntimeException("Failed to update players"));
+
+                int randomInt1 = 0;
+                int randomInt2 = 0;
+
+                while(randomInt1 == randomInt2){
+                    randomInt1 = rand.nextInt(playerList.size());
+                    randomInt2 = rand.nextInt(playerList.size());
+                }
+
+                Player player1 = playerList.get(randomInt1);
+                Player player2 = playerList.get(randomInt2);
+
+                //TODO fix this thing
+                if(player1.getListOfPlayedPlayers().stream().anyMatch(element -> player2.getPlayerId() == Long.parseLong(element.substring(0, 1)))){
+                    log.info("They have already played");
+                    i--;
+                    continue;
+                }
+
+                matchups.add(new Matchup(player1, player2, false));
+                playerList.removeIf(player -> player.getPlayerId() == player1.getPlayerId() || player.getPlayerId() == player2.getPlayerId());
+            }
+
         }
-        return "Players Updated";
+        return matchups;
     }
 
-    @Override
-    public String deletePlayers(List<Player> players) {
-        return null;
+    private void removePlayersWith3Wins(List<Player> players){
+        players.removeIf(player -> player.getCurrentScore().charAt(0) == '3');
+    }
+
+    private Map<String, List<Player>> splitUpScores(List<Player> players){
+        Map<String, List<Player>> splitUpScores = new HashMap<>();
+        players.forEach(player -> {
+            if(splitUpScores.containsKey(player.getCurrentScore())){
+                splitUpScores.get(player.getCurrentScore()).add(player);
+            }else{
+                List<Player> playerList = new ArrayList<>();
+                playerList.add(player);
+                splitUpScores.put(player.getCurrentScore(), playerList);
+            }
+        });
+        return splitUpScores;
     }
 }

@@ -1,16 +1,10 @@
 package com.swiss.system.swisssystem2.services;
 
-import com.swiss.system.swisssystem2.dtos.Player;
+import com.swiss.system.swisssystem2.dtos.Matchup;
 
 import java.util.List;
 
 public interface GameService {
 
-    List<Player> listAllPlayers();
-
-    String addPlayers(List<Player> players);
-
-    String updatePlayers(List<Player> players);
-
-    String deletePlayers(List<Player> players);
+    List<Matchup> startGame();
 }

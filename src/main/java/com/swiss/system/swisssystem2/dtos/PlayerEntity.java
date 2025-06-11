@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -27,6 +28,6 @@ public class PlayerEntity {
 
     @Column(name = "list_of_played_players")
     @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
-    private List<String> listOfPlayedPlayers;
+    private Set<String> listOfPlayedPlayers;
 
 }

@@ -38,20 +38,7 @@ public class PlayerServiceImpl implements PlayerService {
 
     @Override
     public String updatePlayers(List<Player> players) {
-        try {
-            for (Player player: players) {
-                for(int i = 0; i < player.getListOfPlayedPlayers().size(); i++){
-                    Optional<PlayerEntity> currentPlayer = gameRepository.findById(Long.parseLong(player.getListOfPlayedPlayers().get(i)));
-                    if(currentPlayer.isEmpty()) continue;
-                    player.getListOfPlayedPlayers().set(i, currentPlayer.get().getPlayerId() + ", " + currentPlayer.get().getName());
-                }
-            }
-
-            gameRepository.saveAll(playerMapper.playerToPlayerEntity(players));
-        }catch (Exception e){
-            log.error("Failed to update players", e);
-            throw new JpaSystemException(new RuntimeException("Failed to update players"));
-        }
+        gameRepository.saveAll(playerMapper.playerToPlayerEntity(players));
         return "Players Updated";
     }
 

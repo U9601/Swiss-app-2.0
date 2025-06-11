@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -16,14 +17,14 @@ public class Player {
     private String name;
     private String currentScore;
     private List<Integer> records;
-    private List<String> listOfPlayedPlayers;
+    private Set<String> listOfPlayedPlayers;
 
 
     public static String getCurrentScore(List<Integer> records) {
         int win = 0;
         int loss = 0;
-        for(Integer record : records){
-            if(record == 0){
+        for(Integer integer : records){
+            if(integer == 0){
                 loss++;
                 continue;
             }

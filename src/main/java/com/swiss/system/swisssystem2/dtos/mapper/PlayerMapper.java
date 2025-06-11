@@ -6,6 +6,7 @@ import org.mapstruct.Mapper;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -29,7 +30,7 @@ public interface PlayerMapper {
                 .playerId(player.getPlayerId())
                 .name(player.getName())
                 .records(player.getRecords() == null ? new ArrayList<>() : player.getRecords())
-                .listOfPlayedPlayers(player.getListOfPlayedPlayers() == null ? new ArrayList<>() : player.getListOfPlayedPlayers())
+                .listOfPlayedPlayers(player.getListOfPlayedPlayers() == null ? new HashSet<>() : player.getListOfPlayedPlayers())
                 .build();
     }
 }

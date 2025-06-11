@@ -7,14 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class GameServiceImpl implements GameService {
 
     private final PlayerService playerService;
-    private final Random rand = new Random();
 
     @Override
     public List<Matchup> startGame() {
@@ -26,36 +24,31 @@ public class GameServiceImpl implements GameService {
         Map<String, List<Player>> splitUpScores = splitUpScores(players);
         List<Matchup> matchups = new ArrayList<>();
         for(List<Player> playerList : splitUpScores.values()) {
-            for(int i = 0; i < players.size(); i++){
-                if(playerList.isEmpty()) break;
+            if(playerList.isEmpty()) break;
 
-                if(playerList.size() == 1){
-                    matchups.add(Matchup.builder().player1(playerList.get(0)).hasByeRound(true).build());
+            if(playerList.size() == 1){
+                matchups.add(Matchup.builder().player1(playerList.get(0)).hasByeRound(true).build());
+                break;
+            }
+
+            Collections.shuffle(playerList);
+
+            for (int i = 0; i < (playerList.size() + 1) / 2; i++) {
+                Player player1 = playerList.get(i);
+                Optional<Player> notPlayedAgainstPlayer = playerList.stream()
+                        .filter(player -> !player.equals(player1) && !player1.getListOfPlayedPlayers().contains(player.getName() + " - " + player.getPlayerId()))
+                        .findFirst();
+
+                if (notPlayedAgainstPlayer.isEmpty()) {
+                    matchups.add(Matchup.builder().player1(playerList.get(i)).hasByeRound(true).build());
                     break;
                 }
 
-                int randomInt1 = 0;
-                int randomInt2 = 0;
-
-                while(randomInt1 == randomInt2){
-                    randomInt1 = rand.nextInt(playerList.size());
-                    randomInt2 = rand.nextInt(playerList.size());
-                }
-
-                Player player1 = playerList.get(randomInt1);
-                Player player2 = playerList.get(randomInt2);
-
-                //TODO fix this thing
-                if(player1.getListOfPlayedPlayers().stream().anyMatch(element -> player2.getPlayerId() == Long.parseLong(element.substring(0, 1)))){
-                    log.info("They have already played");
-                    i--;
-                    continue;
-                }
-
+                Player player2 = notPlayedAgainstPlayer.get();
                 matchups.add(new Matchup(player1, player2, false));
-                playerList.removeIf(player -> player.getPlayerId() == player1.getPlayerId() || player.getPlayerId() == player2.getPlayerId());
+                player1.getListOfPlayedPlayers().add(notPlayedAgainstPlayer.get().getName() + " - " + player2.getPlayerId());
+                player2.getListOfPlayedPlayers().add(player1.getName() + " - " + player1.getPlayerId());
             }
-
         }
         return matchups;
     }

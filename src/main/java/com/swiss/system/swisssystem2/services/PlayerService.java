@@ -10,7 +10,7 @@ public interface PlayerService {
 
     String addPlayers(List<Player> players);
 
-    String updatePlayers(List<Player> players);
+    String updatePlayers(List<Player> players, boolean shouldUpdateScore);
 
-    String deletePlayers(List<Player> players);
+    String deletePlayers(List<Long> players);
 }

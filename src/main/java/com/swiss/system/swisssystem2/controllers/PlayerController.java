@@ -27,11 +27,11 @@ public class PlayerController {
 
     @PutMapping("/update-players")
     public ResponseEntity<String> updatePlayers(@RequestBody List<Player> players) {
-        return ResponseEntity.ok(playerService.updatePlayers(players));
+        return ResponseEntity.ok(playerService.updatePlayers(players, true));
     }
 
     @DeleteMapping("/delete-players")
-    public ResponseEntity<String> deletePlayers(@RequestBody List<Player> players){
+    public ResponseEntity<String> deletePlayers(@RequestBody List<Long> players){
         return ResponseEntity.ok(playerService.deletePlayers(players));
     }
 }

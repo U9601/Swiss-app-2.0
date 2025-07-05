@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,18 +18,18 @@ import java.util.Optional;
 @Slf4j
 public class PlayerServiceImpl implements PlayerService {
 
-    private final PlayerRepository gameRepository;
+    private final PlayerRepository playerRepository;
     private final PlayerMapper playerMapper;
 
     @Override
     public List<Player> listAllPlayers() {
-        return playerMapper.playerEntityToPlayer(gameRepository.findAll());
+        return playerMapper.playerEntityToPlayer(playerRepository.findAll());
     }
 
     @Override
     public String addPlayers(List<Player> players) {
         try {
-            gameRepository.saveAll(playerMapper.playerToPlayerEntity(players));
+            playerRepository.saveAll(playerMapper.playerToPlayerEntity(players));
         }catch (Exception e){
             log.error("Failed to save players", e);
             throw new JpaSystemException(new RuntimeException("Failed to save players"));
@@ -37,15 +38,23 @@ public class PlayerServiceImpl implements PlayerService {
     }
 
     @Override
-    public String updatePlayers(List<Player> players) {
-        gameRepository.saveAll(playerMapper.playerToPlayerEntity(players));
+    public String updatePlayers(List<Player> players, boolean shouldUpdateScore) {
+        List<PlayerEntity> playerEntities = new ArrayList<>();
+        if (shouldUpdateScore) {
+            for (Player player : players) {
+                Optional<PlayerEntity> optionalPlayerEntity = playerRepository.findById(player.getPlayerId());
+                if (optionalPlayerEntity.isEmpty()) continue;
+                optionalPlayerEntity.get().getRecords().add(player.getRecords().get(0));
+            }
+        }
+        playerRepository.saveAll(playerEntities);
         return "Players Updated";
     }
 
     @Override
-    public String deletePlayers(List<Player> players) {
+    public String deletePlayers(List<Long> players) {
         try {
-            gameRepository.deleteAll(playerMapper.playerToPlayerEntity(players));
+            playerRepository.deleteAllById(players);
         }catch (Exception e){
             log.error("Failed to delete players", e);
             throw new JpaSystemException(new RuntimeException("Failed to delete players"));
